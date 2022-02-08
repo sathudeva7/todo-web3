@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import TodoForm from './TodoForm';
 import Todo from './Todo';
+import {TodoContext} from '../context/TodoContext';
 
 function TodoList() {
   const [todos, setTodos] = useState([]);
+  const {taskList, completeTask} = useContext(TodoContext);
 
   const addTodo = todo => {
     if (!todo.text || /^\s*$/.test(todo.text)) {
@@ -31,13 +33,7 @@ function TodoList() {
   };
 
   const completeTodo = id => {
-    let updatedTodos = todos.map(todo => {
-      if (todo.id === id) {
-        todo.isComplete = !todo.isComplete;
-      }
-      return todo;
-    });
-    setTodos(updatedTodos);
+    completeTask(1);
   };
 
   return (
@@ -45,7 +41,7 @@ function TodoList() {
       <h1>Do and Earn</h1>
       <TodoForm onSubmit={addTodo} />
       <Todo
-        todos={todos}
+        todos={taskList}
         completeTodo={completeTodo}
         removeTodo={removeTodo}
         updateTodo={updateTodo}

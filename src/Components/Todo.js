@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import TodoForm from './TodoForm';
 // import { RiCloseCircleLine } from 'react-icons/ri';
 // import { TiEdit } from 'react-icons/ti';
+import {TodoContext} from '../context/TodoContext';
 
 const Todo = ({ todos, completeTodo, removeTodo, updateTodo }) => {
+  const {taskList, viewTasks} = useContext(TodoContext);
   const [edit, setEdit] = useState({
     id: null,
     value: ''
@@ -16,23 +18,31 @@ const Todo = ({ todos, completeTodo, removeTodo, updateTodo }) => {
       value: ''
     });
   };
+  
+  useEffect(() => {
+    viewTasks();
+  },[])
 
   if (edit.id) {
     return <TodoForm edit={edit} onSubmit={submitUpdate} />;
   }
 
-  return todos.map((todo, index) => (
+  return taskList.map((todo, index) => (
+    console.log(todo),
     <div
-      className={todo.isComplete ? 'todo-row complete' : 'todo-row'}
+      className={todo[1] ? 'todo-row complete' : 'todo-row'}
       key={index}
     >
-      <div key={todo.id} onClick={() => completeTodo(todo.id)}>
-        {todo.text}
+      <div key={todo.id} onClick={() => removeTodo(todo.id)}>
+        {todo.task} 
+      </div>
+      <div>
+        {todo.approved ? 'Approved' : 'Pending'}
       </div>
       <div >
           
         <button
-          onClick={() => removeTodo(todo.id)}
+          onClick={() => completeTodo(todo.id)}
           className='badge badge-success delete-icon'
         >Completed</button>
         <button

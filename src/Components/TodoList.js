@@ -5,7 +5,7 @@ import {TodoContext} from '../context/TodoContext';
 
 function TodoList() {
   const [todos, setTodos] = useState([]);
-  const {taskList, completeTask} = useContext(TodoContext);
+  const {taskList, completeTask, isLoading} = useContext(TodoContext);
 
   const addTodo = todo => {
     if (!todo.text || /^\s*$/.test(todo.text)) {
@@ -18,13 +18,13 @@ function TodoList() {
     console.log(...todos);
   };
 
-  const updateTodo = (todoId, newValue) => {
-    if (!newValue.text || /^\s*$/.test(newValue.text)) {
-      return;
-    }
+  // const updateTodo = (todoId, newValue) => {
+  //   if (!newValue.text || /^\s*$/.test(newValue.text)) {
+  //     return;
+  //   }
 
-    setTodos(prev => prev.map(item => (item.id === todoId ? newValue : item)));
-  };
+  //   setTodos(prev => prev.map(item => (item.id === todoId ? newValue : item)));
+  // };
 
   const removeTodo = id => {
     const removedArr = [...todos].filter(todo => todo.id !== id);
@@ -32,17 +32,17 @@ function TodoList() {
     setTodos(removedArr);
   };
 
-  const completeTodo = id => {
-    completeTask(1);
+  const updateTodo = id => {
+    completeTask(id);
   };
 
   return (
     <>
       <h1>Do and Earn</h1>
       <TodoForm onSubmit={addTodo} />
+      {isLoading ? <div>Loading</div> : ''}
       <Todo
         todos={taskList}
-        completeTodo={completeTodo}
         removeTodo={removeTodo}
         updateTodo={updateTodo}
       />

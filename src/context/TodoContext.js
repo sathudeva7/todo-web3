@@ -16,9 +16,17 @@ const getEthereumContract = () => {
 
 export const TodoProvider = ({children}) => {
     const [currentAccount, setCurrentAccount] = useState('');
-    const [todos, setTodos] = useState({task: '', reward: '', completed: false, approved: false});
+    const [todos, setTodos] = useState({task: '', completed: false, approved: false});
     const [isLoading, setIsLoading] = useState(false);
     const [taskList, setTaskList] = useState([]);
+    const [child,setChild] = useState({taskId:'', childId:''});
+    const [childId, setChildId] = useState('');
+    const [id, setId] = useState({id:'', index:''});
+
+    const addChild = (e,name) => {
+        console.log(name,e.target.value)
+        setChild((prevState) => ({...prevState, [name]: e.target.value}));
+    }
 
     const handleChangeTodo = (e, name) => {
         console.log(e.target.value,name);
@@ -65,6 +73,9 @@ export const TodoProvider = ({children}) => {
             const todoContract = getEthereumContract();
             const tasks= await todoContract._viewTasks();
             setTaskList(tasks);
+            
+            const balance = await todoContract._getBalance();
+            console.log(parseInt(Number(balance._hex),10)*(10**(-18)),'balance')
         } catch (error) {
             console.log(error);
         }
@@ -74,18 +85,22 @@ export const TodoProvider = ({children}) => {
         try {
             if (!ethereum) return alert('Please install Metamask');
 
-            const { task, completed, approved, reward} = todos;
+            const { task, completed, approved,reward} = todos;
             const todoContract = getEthereumContract();
-
-           // await ethereum.request({ method: 'eth_createTask', params: [task, completed, approved, reward] });
+            
             const parseReward = ethers.utils.parseEther(reward);
-            const tx = await todoContract._createTask(task, completed, approved, parseReward._hex);
+
+            
+           console.log(todos)
+            const tx = await todoContract._createTask(task, completed, approved,{value: parseReward._hex});
+            
+            //await ethereum.request({ method: 'eth_sendTransaction', params: [{from : currentAccount, to: contractAddress, gas: '0x5208', value: parseReward._hex}] });
 
             setIsLoading(true);
-            console.log(tx.hash);
+            console.log(tx);
             await tx.wait();
             setIsLoading(false);
-            console.log('suc',tx.hash);
+            console.log('suc',tx);
 
             const tasks= await todoContract._viewTasks();
             setTaskList(tasks);
@@ -101,8 +116,8 @@ export const TodoProvider = ({children}) => {
         try {
             if (!ethereum) return alert('Please install Metamask');
             const todoContract = getEthereumContract();
-
-            const tx = await todoContract._updateApproveTask(1,{ gasLimit: 300000 });
+                console.log('xx',taskId)
+            const tx = await todoContract._updateCompleteTask(taskId,{ gasLimit: 300000 });
             setIsLoading(true);
             console.log(tx.hash);
             await tx.wait();
@@ -116,12 +131,64 @@ export const TodoProvider = ({children}) => {
         }
     }
 
+    const approveTask = async (taskId) => {
+        try {
+            if (!ethereum) return alert('Please install Metamask');
+            const todoContract = getEthereumContract();
+                console.log('xx',taskId)
+            const tx = await todoContract._updateApproveTask(taskId,{ gasLimit: 300000 });
+            setIsLoading(true);
+            console.log(tx.hash);
+            await tx.wait();
+            setIsLoading(false);
+            console.log('suc',tx.hash);
+
+            const tasks= await todoContract._viewTasks();
+            setTaskList(tasks);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+    const newChild = async () => {
+        try {
+            if (!ethereum) return alert('Please install Metamask');
+            const todoContract = getEthereumContract();
+            const { taskId, childAddress} = child;
+            const tx = await todoContract._addChild(childAddress,id,{ gasLimit: 300000 });
+            setIsLoading(true);
+            console.log(tx.hash);
+            await tx.wait();
+            setIsLoading(false);
+            console.log('suc',tx.hash);
+
+            const tasks= await todoContract._viewTasks();
+            setTaskList(tasks);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const viewChild = async (taskId) => {
+        try {
+            if (!ethereum) return alert('Please install Metamask');
+            const todoContract = getEthereumContract();
+
+            const tx = await todoContract.childToTask(taskId);
+            console.log(tx)
+            setChildId({id:tx, index:taskId});
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
     useEffect(() => {
         checkIfWalletIsConnected();
     }, []);
 
     return (
-        <TodoContext.Provider value={{connectWallet, currentAccount, todos, setTodos, handleChangeTodo, createTodo, taskList,viewTasks, completeTask}}>
+        <TodoContext.Provider value={{connectWallet, currentAccount, todos, setTodos, handleChangeTodo, createTodo, taskList,viewTasks,setId, completeTask, newChild, child, addChild, viewChild, childId, approveTask,isLoading}}>
             {children}
         </TodoContext.Provider>
     )

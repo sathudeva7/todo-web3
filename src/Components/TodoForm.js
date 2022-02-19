@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import {TodoContext} from '../context/TodoContext';
 
-const Input = ({placeholder, name, type, value, handleChange}) => (
+export const Input = ({placeholder, name, type, value, handleChange}) => (
     <input
         type={type}
         value={value}
